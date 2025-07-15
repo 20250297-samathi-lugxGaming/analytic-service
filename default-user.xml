@@ -1,0 +1,13 @@
+<clickhouse>
+    <users>
+        <default>
+            <!-- Allow all networks -->
+            <networks>
+                <ip>0.0.0.0/0</ip>
+                <ip>::/0</ip>
+            </networks>
+            <!-- Add a password if you want -->
+            <password></password>
+        </default>
+    </users>
+</clickhouse>
