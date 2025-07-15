@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\User\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert -f docker-compose.yaml
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: clickhouse
+  name: clickhouse
+spec:
+  ports:
+    - name: "8123"
+      port: 8123
+      targetPort: 8123
+    - name: "9000"
+      port: 9000
+      targetPort: 9000
+    - name: "9004"
+      port: 9004
+      targetPort: 9004
+  selector:
+    io.kompose.service: clickhouse
+  type: LoadBalancer 

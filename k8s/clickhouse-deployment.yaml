@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\User\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert -f docker-compose.yaml
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: clickhouse
+  name: clickhouse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: clickhouse
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\User\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert -f docker-compose.yaml
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: clickhouse
+    spec:
+      containers:
+        - image: yandex/clickhouse-server:latest
+          name: lugx-clickhouse
+          ports:
+            - containerPort: 8123
+              protocol: TCP
+            - containerPort: 9000
+              protocol: TCP
+            - containerPort: 9004
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/clickhouse
+              name: clickhouse-data
+            # - name: clickhouse-extra-config
+            #   mountPath: /etc/clickhouse-server/config.d/mysql-interface.xml
+            #   subPath: mysql-interface.xml 
+            # - name: clickhouse-mysql-user
+            #   mountPath: /etc/clickhouse-server/users.d/mysql-user.xml
+            #   subPath: mysql-user.xml  
+      restartPolicy: Always
+      volumes:
+        - name: clickhouse-data
+          persistentVolumeClaim:
+            claimName: clickhouse-data
+        # - name: clickhouse-extra-config
+        #   configMap:
+        #     name: clickhouse-extra-config
+        # - name: clickhouse-mysql-user
+        #   configMap:
+        #     name: clickhouse-mysql-user  
