@@ -16,8 +16,8 @@ env:
   REPO_NAME: lugx-repo
 
 jobs:
-  build-and-deploy:
-    name: Build & Deploy Analytics + ClickHouse
+  deploy-analytics-service:
+    name: Build & Deploy Analytics Service to GKE
     runs-on: ubuntu-latest
 
     steps:
@@ -31,18 +31,21 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: 🧱 Build with Maven
+      - name: 🛠️ Build the Service with Maven
         run: mvn clean install -DskipTests
 
-      - name: 🔐 Authenticate with Google Cloud
+      - name: 🔐 Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
           credentials_json: '${{ secrets.GKE_SA_KEY }}'
 
-      - name: ⚙️ Set up gcloud CLI
+      - name: ⚙️ Set up gcloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GKE_PROJECT }}
+
+      - name: 🔌 Install GKE Auth Plugin (Required for kubectl)
+        run: gcloud components install gke-gcloud-auth-plugin --quiet
 
       - name: 🐳 Configure Docker for Artifact Registry
         run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
@@ -53,7 +56,7 @@ jobs:
           docker build -t $IMAGE_URI .
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
-      - name: 🚀 Push Docker Image
+      - name: 🚀 Push Docker Image to Artifact Registry
         run: docker push ${{ env.IMAGE_URI }}
 
       - name: 🔑 Get GKE Cluster Credentials
@@ -62,17 +65,17 @@ jobs:
             --region "$CLUSTER_REGION" \
             --project "$PROJECT_ID"
 
-      - name: 🗃️ Deploy ClickHouse (PVC, Service, Deployment)
+      - name: 📦 Deploy Analytics Service & ClickHouse
         run: |
-          kubectl apply -f k8s/clickhouse-data-persistentvolumeclaim.yaml --validate=false
-          kubectl apply -f k8s/clickhouse-service.yaml --validate=false
-          kubectl apply -f k8s/clickhouse-deployment.yaml --validate=false
-
-      - name: 📦 Deploy Analytics Service (Service + Deployment)
-        run: |
-          kubectl apply -f --validate=false k8s/analytics-service-service.yaml
-          kubectl apply -f --validate=false k8s/analytics-service-deployment.yaml
+          kubectl apply --validate=false -f k8s/clickhouse-data-persistentvolumeclaim.yaml
+          kubectl apply --validate=false -f k8s/clickhouse-service.yaml
+          kubectl apply --validate=false -f k8s/clickhouse-deployment.yaml
+          kubectl apply --validate=false -f k8s/analytics-service-service.yaml
+          kubectl apply --validate=false -f k8s/analytics-service-deployment.yaml
           kubectl rollout restart deployment $DEPLOYMENT_NAME
 
-      - name: ✅ Confirm Rollout Completion
+      - name: ✅ Wait for Rollout
         run: kubectl rollout status deployment/$DEPLOYMENT_NAME --timeout=60s
+
+      - name: 🔍 Check Service Status
+        run: kubectl get svc,pods -o wide
