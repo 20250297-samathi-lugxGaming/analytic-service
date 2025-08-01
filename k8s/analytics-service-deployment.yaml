@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: analytics-service
+  labels:
+    io.kompose.service: analytics-service
   annotations:
     kompose.cmd: C:\Users\User\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert -f docker-compose.yaml
     kompose.version: 1.36.0 (ae2a39403)
-  labels:
-    io.kompose.service: analytics-service
-  name: analytics-service
 spec:
   replicas: 1
   selector:
@@ -14,25 +14,24 @@ spec:
       io.kompose.service: analytics-service
   template:
     metadata:
+      labels:
+        io.kompose.service: analytics-service
       annotations:
         kompose.cmd: C:\Users\User\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert -f docker-compose.yaml
         kompose.version: 1.36.0 (ae2a39403)
-      labels:
-        io.kompose.service: analytics-service
     spec:
       containers:
-        - env:
+        - name: analytics-service
+          image: samathikisalka/analytics-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8083
+              protocol: TCP
+          env:
             - name: CLICKHOUSE_HOST
               value: clickhouse
             - name: CLICKHOUSE_PORT
               value: "8123"
-          image: samathikisalka/analytics-service:latest
-          name: analytics-service
-          imagePullPolicy: Always
-          env:
             - name: CLICKHOUSE_URL
               value: "jdbc:clickhouse://clickhouse:8123/analytics_db?compress=0"
-          ports:
-            - containerPort: 8083
-              protocol: TCP
       restartPolicy: Always
