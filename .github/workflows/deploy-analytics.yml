@@ -64,9 +64,9 @@ jobs:
 
       - name: 🗃️ Deploy ClickHouse (PVC, Service, Deployment)
         run: |
-          kubectl apply -f --validate=false k8s/clickhouse-data-persistentvolumeclaim.yaml
-          kubectl apply -f --validate=false k8s/clickhouse-service.yaml
-          kubectl apply -f --validate=false k8s/clickhouse-deployment.yaml
+          kubectl apply -f k8s/clickhouse-data-persistentvolumeclaim.yaml --validate=false
+          kubectl apply -f k8s/clickhouse-service.yaml --validate=false
+          kubectl apply -f k8s/clickhouse-deployment.yaml --validate=false
 
       - name: 📦 Deploy Analytics Service (Service + Deployment)
         run: |
