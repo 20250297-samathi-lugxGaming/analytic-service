@@ -33,5 +33,5 @@ spec:
             - name: CLICKHOUSE_PORT
               value: "8123"
             - name: CLICKHOUSE_URL
-              value: "jdbc:clickhouse://clickhouse:8123/analytics_db?compress=0"
+              value: "jdbc:clickhouse://clickhouse:8123/default?compress=0"
       restartPolicy: Always
