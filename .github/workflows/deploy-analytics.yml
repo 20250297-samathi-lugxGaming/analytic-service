@@ -1,56 +1,78 @@
-name: analytics-service ci cd flow
+name: analytics-service CI/CD Flow
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
-  SI_CLUSTER: lugx-cluster
-  SI_ZONE: us-central1-a
+  CLUSTER_NAME: lugx-cluster
+  CLUSTER_REGION: us-central1
   DEPLOYMENT_NAME: analytics-service
   IMAGE: analytics-service
   TAG: prod
+  REPO_NAME: lugx-repo
 
 jobs:
-  setup-build-publish-deploy:
+  build-and-deploy:
+    name: Build & Deploy Analytics + ClickHouse
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - name: 🔄 Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Set up JDK 21
+      - name: ☕ Set up JDK 21
         uses: actions/setup-java@v1
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
+      - name: 🧱 Build with Maven
         run: mvn clean install -DskipTests
 
-      - name: Setup Google Cloud CLI
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@0.1.3
+      - name: 🔐 Authenticate with Google Cloud
+        uses: google-github-actions/auth@v1
         with:
-          service_account_key: ${{ secrets.GKE_SA_KEY }}
+          credentials_json: '${{ secrets.GKE_SA_KEY }}'
+
+      - name: ⚙️ Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
           project_id: ${{ secrets.GKE_PROJECT }}
 
-      - name: Configure Docker Auth
-        run: gcloud --quiet auth configure-docker
+      - name: 🐳 Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-      - name: Get GKE Cluster Credentials
-        run: gcloud container clusters get-credentials "$SI_CLUSTER" --zone "$SI_ZONE"
-
-      - name: Build Docker Image
-        run: docker build -t gcr.io/$PROJECT_ID/$IMAGE:$TAG .
-
-      - name: Push Docker Image
-        run: docker push gcr.io/$PROJECT_ID/$IMAGE:$TAG
-
-      - name: Deploy to GKE
+      - name: 🏗️ Build Docker Image
         run: |
-          kubectl apply -f analytics-service.yaml
-          kubectl apply -f analytics-service-deployment.yaml
+          IMAGE_URI="us-central1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE:$TAG"
+          docker build -t $IMAGE_URI .
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: 🚀 Push Docker Image
+        run: docker push ${{ env.IMAGE_URI }}
+
+      - name: 🔑 Get GKE Cluster Credentials
+        run: |
+          gcloud container clusters get-credentials "$CLUSTER_NAME" \
+            --region "$CLUSTER_REGION" \
+            --project "$PROJECT_ID"
+
+      - name: 🗃️ Deploy ClickHouse (PVC, Service, Deployment)
+        run: |
+          kubectl apply -f k8s/clickhouse-data-persistentvolumeclaim.yaml
+          kubectl apply -f k8s/clickhouse-service.yaml
+          kubectl apply -f k8s/clickhouse-deployment.yaml
+
+      - name: 📦 Deploy Analytics Service (Service + Deployment)
+        run: |
+          kubectl apply -f k8s/analytics-service-service.yaml
+          kubectl apply -f k8s/analytics-service-deployment.yaml
           kubectl rollout restart deployment $DEPLOYMENT_NAME
+
+      - name: ✅ Confirm Rollout Completion
+        run: kubectl rollout status deployment/$DEPLOYMENT_NAME --timeout=60s
