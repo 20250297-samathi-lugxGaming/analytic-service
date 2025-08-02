@@ -21,4 +21,4 @@ spec:
         - name: analytics
           image: us-central1-docker.pkg.dev/samathi-lugxgaming/lugx-repo/analytics-service:prod
           ports:
-            - containerPort: 8088
+            - containerPort: 8083
