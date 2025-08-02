@@ -18,7 +18,7 @@ env:
 
 jobs:
   deploy-analytics-service:
-    name: Build & Deploy Analytics Service (Blue-Green)
+    name: Build & Deploy Analytics Service
     runs-on: ubuntu-latest
 
     steps:
@@ -66,24 +66,17 @@ jobs:
             --region "$CLUSTER_REGION" \
             --project "$PROJECT_ID"
 
-      - name: 📦 Deploy ClickHouse + Analytics GREEN
+      - name: 📦 Deploy ClickHouse + Analytics Service
         run: |
-          kubectl apply -f k8s/clickhouse-data-persistentvolumeclaim.yaml
-          kubectl apply -f k8s/clickhouse-service.yaml
-          kubectl apply -f k8s/clickhouse-deployment.yaml
-          kubectl apply -f k8s/analytics-green-deployment.yaml
+          kubectl apply --validate=false -f k8s/clickhouse-data-persistentvolumeclaim.yaml
+          kubectl apply --validate=false -f k8s/clickhouse-service.yaml
+          kubectl apply --validate=false -f k8s/clickhouse-deployment.yaml
+          kubectl apply --validate=false -f k8s/analytics-service-service.yaml
+          kubectl apply --validate=false -f k8s/analytics-service-deployment.yaml
+          kubectl rollout restart deployment $DEPLOYMENT_NAME
 
-      - name: ⏳ Wait for GREEN rollout
-        run: kubectl rollout status deployment/analytics-green --timeout=90s
-
-      - name: 🔁 Switch Service to GREEN deployment
-        run: |
-          kubectl patch service analytics-service \
-            -p '{"spec": {"selector": {"app": "analytics", "color": "green"}}}'
-
-      - name: 🧹 Optional Cleanup old BLUE deployment
-        run: |
-          kubectl delete deployment analytics-blue || echo "No existing blue deployment to delete"
+      - name: ✅ Wait for Rollout
+        run: kubectl rollout status deployment/$DEPLOYMENT_NAME --timeout=60s
 
       - name: 📅 Apply ClickHouse → S3 Export CronJob
         run: |
