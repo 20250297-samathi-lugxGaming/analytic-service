@@ -4,7 +4,7 @@ metadata:
   name: clickhouse-export-to-s3
   namespace: default
 spec:
-  schedule: "0 * * * *"  # every hour (customize this)
+  schedule: "0 * * * *"  # every hour, change to "0 0 * * *" for daily
   jobTemplate:
     spec:
       template:
@@ -16,10 +16,8 @@ spec:
                 - /bin/sh
                 - -c
                 - |
-                  apt update && apt install -y curl
-                  curl -s "http://clickhouse:8123/?query=SELECT%20*%20FROM%20analytics_events%20FORMAT%20CSV" \
-                    -o /tmp/analytics_data.csv
-
+                  apt update && apt install -y curl > /dev/null
+                  curl -s "http://clickhouse:8123/?query=SELECT%20*%20FROM%20analytics_events%20FORMAT%20CSV" -o /tmp/analytics_data.csv
                   aws s3 cp /tmp/analytics_data.csv s3://samathi-lugx-games/analytics/analytics_data.csv
               env:
                 - name: AWS_ACCESS_KEY_ID
