@@ -8,6 +8,9 @@ metadata:
     io.kompose.service: analytics-service
   name: analytics-service
 spec:
+  selector:
+    app: analytics
+    color: green
   ports:
     - name: "8088"
       port: 8088
