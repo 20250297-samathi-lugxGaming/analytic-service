@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: clickhouse-export-to-s3
+  namespace: default
+spec:
+  schedule: "0 * * * *"  # every hour (customize this)
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: clickhouse-exporter
+              image: amazon/aws-cli
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  apt update && apt install -y curl
+                  curl -s "http://clickhouse:8123/?query=SELECT%20*%20FROM%20analytics_events%20FORMAT%20CSV" \
+                    -o /tmp/analytics_data.csv
+
+                  aws s3 cp /tmp/analytics_data.csv s3://samathi-lugx-games/analytics/analytics_data.csv
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: s3-creds
+                      key: AWS_ACCESS_KEY_ID
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: s3-creds
+                      key: AWS_SECRET_ACCESS_KEY
+          restartPolicy: OnFailure
