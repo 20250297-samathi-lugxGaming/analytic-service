@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    - cron: '0 * * * *'  # Run every hour
+  workflow_dispatch:
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
@@ -17,7 +20,7 @@ env:
 
 jobs:
   deploy-analytics-service:
-    name: Build & Deploy Analytics Service to GKE
+    name: Build, Deploy, and Test Analytics Service
     runs-on: ubuntu-latest
 
     steps:
@@ -83,3 +86,9 @@ jobs:
       - name: 📅 Apply ClickHouse → S3 Export CronJob
         run: |
           kubectl apply -f k8s/clickhouse-export-to-s3-cronjob.yaml
+
+      - name: 🧪 Run Integration Test
+        run: |
+          echo "Running integration test against /api/analytics..."
+          curl --fail http://34.45.77.134/api/analytics || exit 1
+          echo "✅ Integration test passed"
