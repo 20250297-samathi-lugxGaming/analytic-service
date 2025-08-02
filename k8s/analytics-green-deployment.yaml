@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-green
+  labels:
+    app: analytics
+    color: green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: analytics
+      color: green
+  template:
+    metadata:
+      labels:
+        app: analytics
+        color: green
+    spec:
+      containers:
+        - name: analytics
+          image: us-central1-docker.pkg.dev/samathi-lugxgaming/lugx-repo/analytics-service:prod
+          ports:
+            - containerPort: 8088
