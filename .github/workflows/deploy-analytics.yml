@@ -79,3 +79,7 @@ jobs:
 
       - name: 🔍 Check Service Status
         run: kubectl get svc,pods -o wide
+
+      - name: 📅 Apply ClickHouse → S3 Export CronJob
+        run: |
+          kubectl apply -f k8s/clickhouse-export-to-s3-cronjob.yaml
