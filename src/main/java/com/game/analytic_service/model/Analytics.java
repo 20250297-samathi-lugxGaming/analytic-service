@@ -17,18 +17,19 @@ public class Analytics {
     //"timestamp": "2025-06-24T12:00:00"
     private LocalDateTime timestamp = LocalDateTime.now();
 
-    @JsonProperty("additional_data")
-private String additionalData;
+@JsonProperty("additional_data")
+private Map<String, Object> additionalData;
 
 @JsonProperty("additional_data")
-public String getAdditionalData() {
+public Map<String, Object> getAdditionalData() {
     return additionalData;
 }
 
 @JsonProperty("additional_data")
-public void setAdditionalData(String additionalData) {
+public void setAdditionalData(Map<String, Object> additionalData) {
     this.additionalData = additionalData;
 }
+
 //    private String userId;
 
     public String getEventType() {
