@@ -20,15 +20,14 @@ public class Analytics {
 @JsonProperty("scrollDepth")
 private Integer scrollDepth;
 
-@JsonProperty("scrollDepth")
 public Integer getScrollDepth() {
     return scrollDepth;
 }
 
-@JsonProperty("scrollDepth")
 public void setScrollDepth(Integer scrollDepth) {
     this.scrollDepth = scrollDepth;
 }
+
 
 //    private String userId;
 
