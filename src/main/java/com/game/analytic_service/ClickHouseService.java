@@ -36,8 +36,9 @@ public class ClickHouseService {
         System.out.println("Page: " + event.getPage());
         System.out.println("SessionId: " + event.getSessionId());
         System.out.println("Timestamp: " + event.getTimestamp());
+        System.out.println("AdditionalData: " + event.getAdditionalData());
         System.out.println("Connecting to ClickHouse with URL: " + url);
-        String insertSQL = "INSERT INTO analytics_events (eventType, pageUrl, sessionId, timestamp) VALUES (?, ?, ?, ?)";
+        String insertSQL = "INSERT INTO analytics_events (eventType, pageUrl, sessionId, timestamp, additional_data) VALUES (?, ?, ?, ?, ?)";
 
         try (
                 Connection conn = DriverManager.getConnection(url, user, password);
@@ -49,6 +50,7 @@ public class ClickHouseService {
             stmt.setString(2, event.getPage());
             stmt.setString(3, event.getSessionId());
             stmt.setTimestamp(4, Timestamp.valueOf(event.getTimestamp()));
+            stmt.setString(5, event.getAdditionalData());
             stmt.executeUpdate();
             System.out.println("[DEBUG] Insert executed successfully!");
         } catch (SQLException e) {
