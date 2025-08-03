@@ -17,17 +17,17 @@ public class Analytics {
     //"timestamp": "2025-06-24T12:00:00"
     private LocalDateTime timestamp = LocalDateTime.now();
 
-@JsonProperty("additional_data")
-private Map<String, Object> additionalData;
+@JsonProperty("scrollDepth")
+private Integer scrollDepth;
 
-@JsonProperty("additional_data")
-public Map<String, Object> getAdditionalData() {
-    return additionalData;
+@JsonProperty("scrollDepth")
+public Integer getScrollDepth() {
+    return scrollDepth;
 }
 
-@JsonProperty("additional_data")
-public void setAdditionalData(Map<String, Object> additionalData) {
-    this.additionalData = additionalData;
+@JsonProperty("scrollDepth")
+public void setScrollDepth(Integer scrollDepth) {
+    this.scrollDepth = scrollDepth;
 }
 
 //    private String userId;
