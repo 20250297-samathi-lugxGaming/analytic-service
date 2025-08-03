@@ -2,7 +2,7 @@ package com.game.analytic_service.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import java.util.Map;
 import java.time.LocalDateTime;
 
 public class Analytics {
