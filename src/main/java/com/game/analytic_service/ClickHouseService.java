@@ -1,6 +1,7 @@
 package com.game.analytic_service;
 
 import com.game.analytic_service.model.Analytics;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,8 @@ public class ClickHouseService {
     @Value("${clickhouse.password}")
     private String password;
 
+    private final ObjectMapper objectMapper = new ObjectMapper(); // ✅ Added for JSON serialization
+    
     @PostConstruct
     public void printConfig() {
         System.out.println("[DEBUG] CLICKHOUSE_URL: " + url);
@@ -50,7 +53,10 @@ public class ClickHouseService {
             stmt.setString(2, event.getPage());
             stmt.setString(3, event.getSessionId());
             stmt.setTimestamp(4, Timestamp.valueOf(event.getTimestamp()));
-            stmt.setString(5, event.getAdditionalData());
+            String additionalJson = event.getAdditionalData() != null
+                    ? objectMapper.writeValueAsString(event.getAdditionalData())
+                    : "";
+            stmt.setString(5, additionalJson);
             stmt.executeUpdate();
             System.out.println("[DEBUG] Insert executed successfully!");
         } catch (SQLException e) {
