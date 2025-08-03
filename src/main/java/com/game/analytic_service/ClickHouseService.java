@@ -1,7 +1,6 @@
 package com.game.analytic_service;
 
 import com.game.analytic_service.model.Analytics;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,8 +19,6 @@ public class ClickHouseService {
 
     @Value("${clickhouse.password}")
     private String password;
-
-    private final ObjectMapper objectMapper = new ObjectMapper(); // ✅ Added for JSON serialization
     
     @PostConstruct
     public void printConfig() {
@@ -39,9 +36,9 @@ public class ClickHouseService {
         System.out.println("Page: " + event.getPage());
         System.out.println("SessionId: " + event.getSessionId());
         System.out.println("Timestamp: " + event.getTimestamp());
-        System.out.println("AdditionalData: " + event.getAdditionalData());
+       
         System.out.println("Connecting to ClickHouse with URL: " + url);
-        String insertSQL = "INSERT INTO analytics_events (eventType, pageUrl, sessionId, timestamp, additional_data) VALUES (?, ?, ?, ?, ?)";
+        String insertSQL = "INSERT INTO analytics_events (eventType, pageUrl, sessionId, timestamp, scrollDepth) VALUES (?, ?, ?, ?, ?)";
 
         try (
                 Connection conn = DriverManager.getConnection(url, user, password);
@@ -53,10 +50,7 @@ public class ClickHouseService {
             stmt.setString(2, event.getPage());
             stmt.setString(3, event.getSessionId());
             stmt.setTimestamp(4, Timestamp.valueOf(event.getTimestamp()));
-            String additionalJson = event.getAdditionalData() != null
-                    ? objectMapper.writeValueAsString(event.getAdditionalData())
-                    : "";
-            stmt.setString(5, additionalJson);
+            stmt.setObject(5, event.getScrollDepth());
             stmt.executeUpdate();
             System.out.println("[DEBUG] Insert executed successfully!");
         } catch (SQLException e) {
