@@ -36,7 +36,8 @@ public class ClickHouseService {
         System.out.println("Page: " + event.getPage());
         System.out.println("SessionId: " + event.getSessionId());
         System.out.println("Timestamp: " + event.getTimestamp());
-       
+        System.out.println("ScrollDepth: " + event.getScrollDepth());
+
         System.out.println("Connecting to ClickHouse with URL: " + url);
         String insertSQL = "INSERT INTO analytics_events (eventType, pageUrl, sessionId, timestamp, scrollDepth) VALUES (?, ?, ?, ?, ?)";
 
