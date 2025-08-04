@@ -50,7 +50,12 @@ public class ClickHouseService {
             stmt.setString(2, event.getPage());
             stmt.setString(3, event.getSessionId());
             stmt.setTimestamp(4, Timestamp.valueOf(event.getTimestamp()));
-            stmt.setObject(5, event.getScrollDepth());
+            if (event.getScrollDepth() != null) {
+            stmt.setInt(5, event.getScrollDepth());        // sets integer normally
+                } else {
+            stmt.setNull(5, Types.INTEGER);                // sets it as NULL
+            }
+
             stmt.executeUpdate();
             System.out.println("[DEBUG] Insert executed successfully!");
         } catch (SQLException e) {
